@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Light Ranger Tilt Calculator</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; max-width: 600px; margin: auto; }
+    h1 { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+    h2 { font-size: 16px; font-weight: bold; margin-top: 30px; margin-bottom: 10px; }
+    label { display: block; margin-top: 10px; font-size: 12px; }
+    input, select { width: 100%; padding: 6px; text-align: center; }
+    .inline-group { display: flex; justify-content: center; gap: 10px; }
+    .inline-group label { flex: 1; font-size: 12px; }
+    .radio-group { display: flex; justify-content: center; margin-top: 10px; }
+    .radio-group label { margin: 0 10px; font-size: 12px; }
+    button { margin-top: 20px; padding: 10px 20px; }
+    #result { font-size: 24px; margin-top: 20px; font-weight: bold; display: inline-block; }
+    .right { float: right; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>Light Ranger Tilt Calculator</h1>
+
+  <label>Focal Length</label>
+  <input type="number" id="focal" placeholder="e.g. 40">
+
+  <label>Subject Distance to Focal Plane</label>
+  <div class="inline-group">
+    <label>Feet<br><input type="number" id="feet" placeholder="e.g. 10"></label>
+    <label>Inches<br><input type="number" id="inches" placeholder="e.g. 0"></label>
+  </div>
+
+  <label>Frame Height</label>
+  <div class="radio-group">
+    <label><input type="radio" name="frame" value="top" checked> Top</label>
+    <label><input type="radio" name="frame" value="middle"> Middle</label>
+    <label><input type="radio" name="frame" value="bottom"> Bottom</label>
+  </div>
+
+  <h2>Light Ranger Sensor Distance to Focal Plane</h2>
+  <div class="inline-group">
+    <label>Horizontal Offset (in)<br><input type="number" id="lr_offset" placeholder=""></label>
+    <label>Vertical Offset (in)<br><input type="number" id="lr_height" placeholder=""></label>
+  </div>
+
+  <label>Image Format</label>
+  <select id="sensorMode" onchange="updateSensorValues()">
+    <option value="">-- Select --</option>
+    <option value="8192,4320,21.60">8K 17:9 (8192×4320)</option>
+    <option value="6144,3160,21.12">6K 2.00:1 (6144×3160)</option>
+    <option value="4608,2592,15.36">4.6K 17:9 (4608×2592)</option>
+    <option value="4096,2160,13.82">4K 16:9 (4096×2160)</option>
+    <option value="2048,1080,6.91">2K 16:9 (2048×1080)</option>
+    <option value="custom">Custom / Manual</option>
+  </select>
+
+  <label>Vertical Resolution (px)</label>
+  <input type="number" id="vert_res" value="2160" disabled>
+
+  <label>Image Sensor Height (mm)</label>
+  <input type="number" id="sensor_mm" value="13.82" disabled>
+
+  <div>
+    <button onclick="calculateTilt()">Calculate Tilt</button>
+    <button class="right" onclick="clearFields()">Clear All Fields</button>
+  </div>
+
+  <div id="result">Tilt Angle —</div>
+
+  <script>
+    function updateSensorValues() {
+      const mode = document.getElementById("sensorMode").value;
+      const sensorInput = document.getElementById("sensor_mm");
+      const vertInput = document.getElementById("vert_res");
+
+      if (mode === "custom") {
+        sensorInput.disabled = false;
+        vertInput.disabled = false;
+        sensorInput.value = "";
+        vertInput.value = "";
+      } else {
+        const parts = mode.split(",");
+        const vert = parts[1];
+        const height = parts[2];
+        vertInput.value = vert;
+        sensorInput.value = height;
+        sensorInput.disabled = true;
+        vertInput.disabled = true;
+      }
+    }
+
+    function calculateTilt() {
+      try {
+        const f = parseFloat(document.getElementById("focal").value);
+        const ft = parseFloat(document.getElementById("feet").value);
+        const inch = parseFloat(document.getElementById("inches").value);
+        const h = parseFloat(document.getElementById("lr_height").value);
+        const z = parseFloat(document.getElementById("lr_offset").value);
+        const sensor_mm = parseFloat(document.getElementById("sensor_mm").value);
+
+        const d = (ft * 12) + inch;
+        const horizontal_leg = d - z;
+
+        const base_angle = Math.atan(h / horizontal_leg) * (180 / Math.PI);
+        const vfov = 2 * Math.atan((sensor_mm / 2) / f) * (180 / Math.PI);
+
+        const frame_choice = document.querySelector('input[name="frame"]:checked').value;
+        let frame_pos = 0.75;
+        if (frame_choice === "middle") frame_pos = 0.5;
+        else if (frame_choice === "bottom") frame_pos = 0.25;
+
+        const offset = (vfov / 2) * (0.5 - frame_pos);
+        const final_angle = base_angle + offset;
+
+        document.getElementById("result").innerText = `Tilt Angle ${final_angle.toFixed(2)}°`;
+      } catch (err) {
+        document.getElementById("result").innerText = "Tilt Angle: Error";
+      }
+    }
+
+    function clearFields() {
+      const ids = ["focal", "feet", "inches", "lr_offset", "lr_height"];
+      ids.forEach(id => document.getElementById(id).value = "");
+      document.getElementById("result").innerText = "Tilt Angle —";
+    }
+  </script>
+
+</body>
+</html>
