@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Light Ranger Tilt Calculator</title>
 
-  <!-- iOS standalone -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LR Tilt" />
-
   <meta name="theme-color" content="#000000" />
   <link rel="manifest" href="manifest.json" />
 
@@ -22,7 +20,6 @@
       --btn:rgba(255,255,255,.14);
       --btnline:rgba(255,255,255,.25);
     }
-
     html, body { height: 100%; }
     body{
       margin:0;
@@ -41,15 +38,14 @@
       justify-content:center;
       align-items:flex-start;
       box-sizing:border-box;
+      text-align:center;
     }
-
     .wrap{ width:min(560px,100%); }
 
     h2{
       margin:10px 0 18px;
       font-size:28px;
       font-weight:700;
-      text-align:center;
     }
 
     label{
@@ -58,13 +54,13 @@
       margin-bottom:6px;
       font-weight:700;
       font-size:14px;
-      text-align:left;
+      text-align:center;
     }
 
     input, select, button{
       width:100%;
       box-sizing:border-box;
-      border-radius:10px;
+      border-radius:12px;
       border:1px solid var(--line);
       background:var(--field);
       color:var(--fg);
@@ -77,35 +73,36 @@
     .inline-group{
       display:flex;
       gap:10px;
+      justify-content:center;
     }
-    .inline-group > div{ flex:1; }
+    .inline-group label{
+      flex:1;
+      margin-top:0;
+      margin-bottom:0;
+      font-weight:700;
+      font-size:14px;
+    }
 
     .radio-title{
       margin-top:16px;
       font-weight:800;
       font-size:14px;
-      text-align:left;
     }
 
     .radio-group{
       margin-top:8px;
       display:flex;
-      gap:10px;
-    }
-
-    .radio-pill{
-      flex:1;
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:10px;
-      display:flex;
       justify-content:center;
-      align-items:center;
-      gap:6px;
-      font-size:14px;
-      background:rgba(255,255,255,.06);
+      gap:18px;
+      flex-wrap:wrap;
     }
-    .radio-pill input{ width:auto; margin:0; }
+    .radio-group label{
+      font-weight:500;
+      font-size:16px;
+      width:auto;
+      margin:0;
+    }
+    .radio-group input{ width:auto; }
 
     .divider{
       margin-top:14px;
@@ -113,9 +110,8 @@
       background:rgba(255,255,255,.12);
     }
 
-    .actions{ margin-top:18px; }
-
     #calcBtn{
+      margin-top:18px;
       font-weight:800;
       background:var(--btn);
       border:1px solid var(--btnline);
@@ -123,20 +119,18 @@
 
     #result{
       margin-top:18px;
-      font-size:28px;
+      font-size:34px;
       font-weight:900;
-      text-align:center;
     }
 
     #resetBtn{
       margin-top:10px;
       background:transparent;
       border:none;
-      font-size:14px;
+      font-size:16px;
       color:rgba(255,255,255,.75);
-      padding:8px 0;
+      padding:10px 0;
       width:auto;
-      display:inline-block;
     }
   </style>
 </head>
@@ -146,26 +140,26 @@
 
   <h2>Light Ranger Tilt Calculator</h2>
 
-  <label for="focal">Focal Length (mm)</label>
-  <input type="number" id="focal" inputmode="numeric" />
+  <label for="focal">Focal Length</label>
+  <input type="number" id="focal" inputmode="decimal" />
 
   <label>Subject Distance to Focal Plane</label>
   <div class="inline-group">
-    <div><input type="number" id="feet" inputmode="numeric" placeholder="Feet" /></div>
-    <div><input type="number" id="inches" inputmode="numeric" placeholder="Inches" /></div>
+    <label>Feet<br><input type="number" id="feet" inputmode="numeric" /></label>
+    <label>Inches<br><input type="number" id="inches" inputmode="decimal" /></label>
   </div>
 
   <div class="radio-title">Frame Height</div>
   <div class="radio-group">
-    <label class="radio-pill"><input type="radio" name="frame" value="top" checked />Top Third</label>
-    <label class="radio-pill"><input type="radio" name="frame" value="middle" />Middle</label>
-    <label class="radio-pill"><input type="radio" name="frame" value="bottom" />Bottom Third</label>
+    <label><input type="radio" name="frame" value="top" checked> Top Third</label>
+    <label><input type="radio" name="frame" value="middle"> Middle</label>
+    <label><input type="radio" name="frame" value="bottom"> Bottom Third</label>
   </div>
 
   <label style="margin-top:16px;">Light Ranger Sensor Distance to Focal Plane</label>
   <div class="inline-group">
-    <div><input type="number" id="lr_offset" inputmode="decimal" placeholder="Horizontal Offset (in)" /></div>
-    <div><input type="number" id="lr_height" inputmode="decimal" placeholder="Vertical Offset (in)" /></div>
+    <label>Horizontal Offset (in)<br><input type="number" id="lr_offset" inputmode="decimal" /></label>
+    <label>Vertical Offset (in)<br><input type="number" id="lr_height" inputmode="decimal" /></label>
   </div>
 
   <div class="divider"></div>
@@ -180,9 +174,7 @@
     <option value="">-- Select Format --</option>
   </select>
 
-  <div class="actions">
-    <button id="calcBtn" type="button">CALCULATE</button>
-  </div>
+  <button id="calcBtn" type="button">CALCULATE</button>
 
   <div id="result">Tilt Angle —</div>
   <button id="resetBtn" type="button">RESET</button>
@@ -190,8 +182,7 @@
 </div>
 
 <script>
-/* ===== Camera DB: store ONLY the sensor height used (mm) =====
-   Add entries as needed; UI shows body + format; sensor height stays hidden. */
+/* Sensor height (mm) stays internal; no visible vres/sensor boxes */
 const CAMERA_DB = {
   "ARRI ALEXA 35": [
     { label:"4.6K 3:2 Open Gate (4608×3164)", vmm:19.22 },
@@ -227,7 +218,6 @@ const CAMERA_DB = {
   ]
 };
 
-/* ===== Storage keys ===== */
 const LS = {
   focal:"focal", feet:"feet", inches:"inches",
   lr_offset:"lr_offset", lr_height:"lr_height",
@@ -270,22 +260,18 @@ function setActiveSensor(body, idx){
 }
 
 function normalizeNumbers(){
-  // focal: round UP
   if ($("focal").value !== "") {
     const v = Number($("focal").value);
     if (!Number.isNaN(v)) $("focal").value = String(Math.ceil(v));
   }
-  // inches: round UP to whole inch
   if ($("inches").value !== "") {
     const v = Number($("inches").value);
     if (!Number.isNaN(v)) $("inches").value = String(Math.ceil(v));
   }
-  // feet: whole number
   if ($("feet").value !== "") {
     const v = Number($("feet").value);
     if (!Number.isNaN(v)) $("feet").value = String(Math.trunc(v));
   }
-
   save(LS.focal, $("focal").value);
   save(LS.feet, $("feet").value);
   save(LS.inches, $("inches").value);
@@ -306,7 +292,7 @@ function calculateTilt(){
       return;
     }
 
-    const d = (ft * 12) + inch;                 // inches
+    const d = (ft * 12) + inch; // inches
     const base = Math.atan(-h / (d - z)) * (180 / Math.PI);
     const vfov = 2 * Math.atan((activeSensorMM / 2) / f) * (180 / Math.PI);
 
@@ -402,7 +388,6 @@ function bind(){
   $("resetBtn").addEventListener("click", clearAll);
 }
 
-/* PWA cache (optional) */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", ()=> navigator.serviceWorker.register("./sw.js"));
 }
