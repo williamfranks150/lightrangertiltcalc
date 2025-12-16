@@ -1,181 +1,486 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
   <title>Light Ranger Tilt Calculator</title>
+
+  <!-- iOS “open like an app” -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LR Tilt" />
+
+  <!-- Android/desktop install -->
+  <meta name="theme-color" content="#000000" />
+  <link rel="manifest" href="manifest.json" />
+
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-      font-size: 1rem;
-      text-align: center;
+    :root{
+      --bg:#000;
+      --fg:#fff;
+      --muted:rgba(255,255,255,.65);
+      --line:rgba(255,255,255,.18);
+      --field:rgba(255,255,255,.08);
     }
-    h2 {
-      font-size: 2rem;
-      margin-bottom: 20px;
+
+    html, body { height: 100%; }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family:-apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      text-align:center;
+
+      padding-top: calc(env(safe-area-inset-top) + 18px);
+      padding-right: calc(env(safe-area-inset-right) + 18px);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 18px);
+      padding-left: calc(env(safe-area-inset-left) + 18px);
+
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
     }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
+
+    .wrap{
+      width: min(560px, 100%);
     }
-    input, select {
-      width: 100%;
-      padding: 6px;
-      margin-top: 4px;
-      font-size: 1rem;
-      text-align: center;
+
+    h2{
+      margin: 10px 0 18px 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: .2px;
     }
-    .inline-group {
-      display: flex;
+
+    label{
+      display:block;
+      text-align:left;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--fg);
+    }
+
+    .hint{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+      text-align:left;
+    }
+
+    input, select, button{
+      width:100%;
+      box-sizing:border-box;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--field);
+      color: var(--fg);
+      padding: 12px 12px;
+      font-size: 18px;
+      outline: none;
+      text-align:center;
+    }
+
+    input:disabled{
+      opacity:.6;
+    }
+
+    .inline-group{
+      display:flex;
       gap: 10px;
-      justify-content: center;
     }
-    .inline-group label {
-      flex: 1;
+    .inline-group > div{ flex:1; }
+
+    .radio-title{
+      margin-top: 16px;
+      font-weight: 800;
+      text-align:left;
+      font-size: 14px;
     }
-    .radio-group {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
+
+    .radio-group{
+      margin-top: 8px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
     }
-    .radio-group label {
-      font-weight: normal;
+
+    .radio-pill{
+      flex:1;
+      border:1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 8px;
+      background: rgba(255,255,255,.06);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-size: 14px;
+      color: var(--fg);
     }
-    #result-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 20px;
+    .radio-pill input{ width:auto; }
+
+    .actions{
+      margin-top: 18px;
+      display:flex;
+      gap: 12px;
     }
-    #result {
-      font-size: 2rem;
-      font-weight: bold;
+
+    #calcBtn{
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.25);
+      font-weight: 800;
     }
-    #clearBtn {
-      padding: 6px 12px;
-      font-size: 1rem;
+
+    #result{
+      margin-top: 18px;
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+
+    #resetBtn{
+      margin-top: 10px;
+      width: auto;
+      border: none;
+      background: transparent;
+      padding: 8px 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,.75);
+    }
+    #resetBtn:active{ opacity:.7; }
+
+    .divider{
+      margin-top: 14px;
+      height:1px;
+      background: rgba(255,255,255,.12);
     }
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <h2>Light Ranger Tilt Calculator</h2>
 
-<h2>Light Ranger Tilt Calculator</h2>
+    <label for="focal">Focal Length (mm)</label>
+    <input inputmode="numeric" type="number" id="focal" />
 
-<label for="focal">Focal Length</label>
-<input type="number" id="focal" oninput="saveAndCalculate('focal')">
+    <label>Subject Distance to Focal Plane</label>
+    <div class="inline-group">
+      <div>
+        <input inputmode="numeric" type="number" id="feet" placeholder="Feet" />
+      </div>
+      <div>
+        <input inputmode="numeric" type="number" id="inches" placeholder="Inches" />
+      </div>
+    </div>
 
-<label>Subject Distance to Focal Plane</label>
-<div class="inline-group">
-  <label>Feet<br><input type="number" id="feet" oninput="saveAndCalculate('feet')"></label>
-  <label>Inches<br><input type="number" id="inches" oninput="saveAndCalculate('inches')"></label>
-</div>
+    <div class="radio-title">Frame Height</div>
+    <div class="radio-group">
+      <label class="radio-pill"><input type="radio" name="frame" value="top" checked />Top Third</label>
+      <label class="radio-pill"><input type="radio" name="frame" value="middle" />Middle</label>
+      <label class="radio-pill"><input type="radio" name="frame" value="bottom" />Bottom Third</label>
+    </div>
 
-<div class="frame-height-label" style="margin-top: 10px;">Frame Height</div>
-<div class="radio-group">
-  <label><input type="radio" name="frame" value="top" onchange="saveAndCalculate('frame')" checked> Top Third</label>
-  <label><input type="radio" name="frame" value="middle" onchange="saveAndCalculate('frame')"> Middle</label>
-  <label><input type="radio" name="frame" value="bottom" onchange="saveAndCalculate('frame')"> Bottom Third</label>
-</div>
+    <label style="margin-top:16px;">Light Ranger Sensor Distance to Focal Plane</label>
+    <div class="inline-group">
+      <div>
+        <input inputmode="decimal" type="number" id="lr_offset" placeholder="Horizontal Offset (in)" />
+      </div>
+      <div>
+        <input inputmode="decimal" type="number" id="lr_height" placeholder="Vertical Offset (in)" />
+      </div>
+    </div>
 
-<label style="font-weight:bold; margin-top: 10px; margin-bottom: 10px;">Light Ranger Sensor Distance to Focal Plane</label>
-<div class="inline-group">
-  <label>Horizontal Offset (in)<br><input type="number" id="lr_offset" oninput="saveAndCalculate('lr_offset')"></label>
-  <label>Vertical Offset (in)<br><input type="number" id="lr_height" oninput="saveAndCalculate('lr_height')"></label>
-</div>
+    <div class="divider"></div>
 
-<label for="sensorMode">Image Format</label>
-<select id="sensorMode" onchange="saveAndCalculate('sensorMode')">
-  <option value="">-- Select Format --</option>
+    <label for="cameraBody">Camera Body</label>
+    <select id="cameraBody">
+      <option value="">-- Select Body --</option>
+    </select>
 
-  <optgroup label="ARRI">
-    <option value="5120,2880,22.36">ARRIRAW 5.1K (5120×2880)</option>
-    <option value="4608,3164,24.54">ARRIRAW 4.6K (4608×3164)</option>
-    <option value="4608,2592,20.10">ProRes 4.6K 16:9 (4608×2592)</option>
-    <option value="4096,2048,16.48">ProRes 4K 2:1 (4096×2048)</option>
-    <option value="3840,2160,18.66">ProRes UHD (3840×2160)</option>
-    <option value="2880,2160,14.66">ProRes 2.8K Ana (2880×2160)</option>
-  </optgroup>
+    <label for="formatMode">Format / Sensor Mode</label>
+    <select id="formatMode" disabled>
+      <option value="">-- Select Format --</option>
+    </select>
 
-  <optgroup label="Sony">
-    <option value="8192,3432,18.56">8.2K 2.39:1 (8192×3432)</option>
-    <option value="7680,4320,24.00">7.6K 16:9 (7680×4320)</option>
-    <option value="5480,2296,13.90">5.5K 2.39:1 (5480×2296)</option>
-  </optgroup>
+    <label for="vres">Vertical Resolution (px)</label>
+    <input type="number" id="vres" disabled />
 
-  <optgroup label="RED">
-    <option value="8192,4320,20.00">8K FF (8192×4320)</option>
-    <option value="6144,2592,12.80">6K S35 (6144×2592)</option>
-    <option value="5120,2160,10.66">5K S35 (5120×2160)</option>
-    <option value="4480,1920,10.80">4.5K WS (4480×1920)</option>
-  </optgroup>
+    <label for="sensor_mm">Image Sensor Height (mm)</label>
+    <input type="number" id="sensor_mm" disabled />
 
-  <option value="custom">Custom / Manual</option>
-</select>
+    <div class="actions">
+      <button id="calcBtn" type="button">CALCULATE</button>
+    </div>
 
-<label for="vres">Vertical Resolution (px)</label>
-<input type="number" id="vres" disabled>
-
-<label for="sensor_mm">Image Sensor Height (mm)</label>
-<input type="number" id="sensor_mm" disabled>
-
-<div id="result-container">
-  <span id="result">Tilt Angle —</span>
-  <button id="clearBtn" onclick="clearFields()">Clear All Fields</button>
-</div>
+    <div id="result">Tilt Angle —</div>
+    <button id="resetBtn" type="button">RESET</button>
+  </div>
 
 <script>
-function saveAndCalculate(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    localStorage.setItem(id, el.value);
-    if (id === 'sensorMode') updateSensorValues();
-    calculateTilt();
-  } else if (id === 'frame') {
-    const frame = document.querySelector('input[name="frame"]:checked');
-    if (frame) localStorage.setItem('frame', frame.value);
-    calculateTilt();
+/* =========================
+   FORMAT DATABASE
+   Each entry: { label, hpx, vpx, hmm, vmm }
+   ========================= */
+
+const CAMERA_DB = {
+  "ARRI ALEXA 35": [
+    { label:"4.6K 3:2 Open Gate (4608×3164)", hpx:4608, vpx:3164, hmm:27.99, vmm:19.22 },
+    { label:"4.6K 16:9 (4608×2592)",          hpx:4608, vpx:2592, hmm:27.99, vmm:15.75 },
+    { label:"4K 16:9 (4096×2304)",            hpx:4096, vpx:2304, hmm:24.88, vmm:14.00 },
+    { label:"UHD (3840×2160)",                hpx:3840, vpx:2160, hmm:23.33, vmm:13.12 },
+    { label:"4K 2:1 (4096×2048)",             hpx:4096, vpx:2048, hmm:24.88, vmm:12.44 },
+    { label:"3.8K 16:9 (3840×2160)",          hpx:3840, vpx:2160, hmm:23.33, vmm:13.12 },
+    { label:"3.3K 6:5 (3328×2790)",           hpx:3328, vpx:2790, hmm:20.22, vmm:16.95 },
+    { label:"4K 2.39:1 Ana 2x (4096×1716)",   hpx:4096, vpx:1716, hmm:20.22, vmm:16.95 }, // same sensor mode height
+    { label:"3K 1:1 (3072×3072)",             hpx:3072, vpx:3072, hmm:18.66, vmm:18.66 },
+    { label:"3.8K 2:1 Ana 2x (3840×2160)",    hpx:3840, vpx:2160, hmm:18.66, vmm:18.66 }, // same sensor mode height
+    { label:"2.7K 8:9 (2743×3086)",           hpx:2743, vpx:3086, hmm:16.66, vmm:18.75 },
+    { label:"UHD 16:9 Ana 2x (3840×2160)",    hpx:3840, vpx:2160, hmm:16.66, vmm:18.75 }, // same sensor mode height
+    { label:"2K 16:9 S16 (2048×1152)",        hpx:2048, vpx:1152, hmm:12.44, vmm:7.00 }
+  ],
+
+  "ARRI ALEXA Mini LF": [
+    { label:"4.5K LF 3:2 Open Gate (4448×3096)", hpx:4448, vpx:3096, hmm:36.70, vmm:25.54 },
+    { label:"4.5K LF 2.39:1 (4448×1856)",        hpx:4448, vpx:1856, hmm:36.70, vmm:15.31 },
+    { label:"3.8K LF 16:9 UHD (3840×2160)",      hpx:3840, vpx:2160, hmm:31.68, vmm:17.82 },
+    { label:"2.8K LF 1:1 (2880×2880)",           hpx:2880, vpx:2880, hmm:23.76, vmm:23.76 },
+    { label:"3.4K S35 3:2 (3424×2202)",          hpx:3424, vpx:2202, hmm:28.25, vmm:18.17 },
+
+    { label:"4.3K LF 16:9 (4320×2430) [sensor] / UHD recorded", hpx:4320, vpx:2430, hmm:35.64, vmm:20.05 },
+    { label:"3.2K S35 16:9 (3200×1800)",         hpx:3200, vpx:1800, hmm:26.40, vmm:14.85 },
+    { label:"2.8K S35 4:3 (2880×2160)",          hpx:2880, vpx:2160, hmm:23.76, vmm:17.82 },
+    { label:"2.8K S35 16:9 (2880×1620)",         hpx:2880, vpx:1620, hmm:23.76, vmm:13.37 }
+  ],
+
+  "Sony VENICE 2 (8K / 6K)": [
+    // 8K sensor modes (Sony table provides active image height in mm)
+    { label:"8.6K 3:2 FF (8640×5760)",  hpx:8640, vpx:5760, hmm:35.9, vmm:24.0 },
+    { label:"8.6K 17:9 FF (8640×4556)", hpx:8640, vpx:4556, hmm:35.9, vmm:19.0 },
+    { label:"8.2K 17:9 FF (8192×4320)", hpx:8192, vpx:4320, hmm:34.1, vmm:18.0 },
+    { label:"8.2K 2.39:1 FF (8192×3432)", hpx:8192, vpx:3432, hmm:34.1, vmm:14.3 },
+    { label:"7.6K 16:9 FF (7680×4320)", hpx:7680, vpx:4320, hmm:32.0, vmm:18.0 },
+    { label:"8.1K 16:9 FF (8100×4556)", hpx:8100, vpx:4556, hmm:33.8, vmm:19.0 },
+
+    { label:"5.8K 6:5 U35 (5792×4854)", hpx:5792, vpx:4854, hmm:24.1, vmm:20.2 },
+    { label:"5.8K 4:3 U35 (5792×4276)", hpx:5792, vpx:4276, hmm:24.1, vmm:17.8 },
+    { label:"5.8K 17:9 U35 (5792×3056)", hpx:5792, vpx:3056, hmm:24.1, vmm:12.7 },
+    { label:"5.4K 16:9 U35 (5434×3056)", hpx:5434, vpx:3056, hmm:22.6, vmm:12.7 },
+    { label:"5.5K 2.39:1 U35 (5480×2296)", hpx:5480, vpx:2296, hmm:22.8, vmm:9.55 },
+
+    // 6K sensor modes (includes S35 + FF on 6K block)
+    { label:"6K 3:2 FF (6048×4032)",    hpx:6048, vpx:4032, hmm:35.9, vmm:24.0 },
+    { label:"6K 17:9 FF (6054×3192)",   hpx:6054, vpx:3192, hmm:36.0, vmm:19.0 },
+    { label:"6K 1.85:1 FF (6054×3272)", hpx:6054, vpx:3272, hmm:36.0, vmm:19.4 },
+    { label:"6K 2.39:1 FF (6048×2534)", hpx:6048, vpx:2534, hmm:35.9, vmm:15.0 },
+    { label:"5.7K 16:9 FF (5674×3192)", hpx:5674, vpx:3192, hmm:33.7, vmm:19.0 },
+
+    { label:"4K 17:9 S35 (4096×2160)",  hpx:4096, vpx:2160, hmm:24.3, vmm:12.8 },
+    { label:"4K 2.39:1 S35 (4096×1716)", hpx:4096, vpx:1716, hmm:24.3, vmm:10.3 },
+    { label:"3.8K 16:9 S35 (3840×2160)", hpx:3840, vpx:2160, hmm:22.8, vmm:12.8 },
+    { label:"4K 4:3 S35 (4096×3024)",   hpx:4096, vpx:3024, hmm:24.3, vmm:18.0 },
+    { label:"4K 6:5 U35 (4096×3432)",   hpx:4096, vpx:3432, hmm:24.3, vmm:20.4 }
+  ],
+
+  "RED KOMODO 6K": [
+    { label:"6K 17:9 (6144×3240)", hpx:6144, vpx:3240, hmm:27.03, vmm:14.26 },
+    { label:"6K 2:1 (6144×3072)",  hpx:6144, vpx:3072, hmm:27.03, vmm:13.52 },
+    { label:"6K 2.4:1 (6144×2574)", hpx:6144, vpx:2574, hmm:27.03, vmm:11.32 },
+    { label:"6K 16:9 (5760×3240)", hpx:5760, vpx:3240, hmm:25.34, vmm:14.26 },
+    { label:"6K 4:3 2x (4320×3240)", hpx:4320, vpx:3240, hmm:18.61, vmm:14.26 },
+    { label:"6K 6:5 2x (3888×3240)", hpx:3888, vpx:3240, hmm:17.11, vmm:14.26 },
+    { label:"6K 3:2 1.8x (4860×3240)", hpx:4860, vpx:3240, hmm:21.38, vmm:14.26 },
+    { label:"5K 17:9 (5120×2700)", hpx:5120, vpx:2700, hmm:22.53, vmm:11.88 },
+    { label:"4K 17:9 (4096×2160)", hpx:4096, vpx:2160, hmm:18.02, vmm:9.50 },
+    { label:"4K 16:9 (3840×2160)", hpx:3840, vpx:2160, hmm:16.90, vmm:9.50 },
+    { label:"2K 17:9 (2048×1080)", hpx:2048, vpx:1080, hmm:9.01,  vmm:4.75 }
+  ],
+
+  "RED V-RAPTOR 8K VV": [
+    { label:"8K 17:9 (8192×4320)", hpx:8192, vpx:4320, hmm:40.96, vmm:21.60 },
+    { label:"8K 2:1 (8192×4096)",  hpx:8192, vpx:4096, hmm:40.96, vmm:20.48 },
+    { label:"8K 2.4:1 (8192×3456)", hpx:8192, vpx:3456, hmm:40.96, vmm:17.28 },
+    { label:"8K 16:9 (7680×4320)", hpx:7680, vpx:4320, hmm:38.40, vmm:21.60 },
+    { label:"8K 1:1 (4320×4320)",  hpx:4320, vpx:4320, hmm:21.60, vmm:21.60 }
+  ],
+
+  "RED DSMC2 MONSTRO 8K VV": [
+    // keep this list shorter in UI; the MONSTRO format table is long.
+    { label:"8K FF (8192×4320)", hpx:8192, vpx:4320, hmm:40.96, vmm:21.60 },
+    { label:"8K 2:1 (8192×4096)", hpx:8192, vpx:4096, hmm:40.96, vmm:20.48 },
+    { label:"8K 2.4:1 (8192×3456)", hpx:8192, vpx:3456, hmm:40.96, vmm:17.28 },
+    { label:"8K 16:9 (7680×4320)", hpx:7680, vpx:4320, hmm:38.40, vmm:21.60 }
+  ],
+
+  "RED DSMC2 GEMINI 5K S35": [
+    { label:"5K Full Height 1.7:1 (5120×3000)", hpx:5120, vpx:3000, hmm:30.72, vmm:18.00 },
+    { label:"4K FF (4096×2160)", hpx:4096, vpx:2160, hmm:24.58, vmm:12.96 },
+    { label:"4K 2:1 (4096×2048)", hpx:4096, vpx:2048, hmm:24.58, vmm:12.29 },
+    { label:"4K 2.4:1 (4096×1728)", hpx:4096, vpx:1728, hmm:24.58, vmm:10.37 },
+    { label:"4K 16:9 (3840×2160)", hpx:3840, vpx:2160, hmm:23.04, vmm:12.96 }
+  ]
+};
+
+
+/* =========================
+   STORAGE + UI
+   ========================= */
+
+const LS_KEYS = {
+  focal:"focal", feet:"feet", inches:"inches",
+  lr_offset:"lr_offset", lr_height:"lr_height",
+  cameraBody:"cameraBody", formatMode:"formatMode",
+  frame:"frame"
+};
+
+function $(id){ return document.getElementById(id); }
+
+function save(id, val){ localStorage.setItem(id, String(val ?? "")); }
+function load(id){ return localStorage.getItem(id); }
+function del(id){ localStorage.removeItem(id); }
+
+function populateBodies(){
+  const bodySel = $("cameraBody");
+  const bodies = Object.keys(CAMERA_DB).sort((a,b)=>a.localeCompare(b));
+  for (const b of bodies){
+    const opt = document.createElement("option");
+    opt.value = b;
+    opt.textContent = b;
+    bodySel.appendChild(opt);
   }
 }
 
-function updateSensorValues() {
-  const mode = document.getElementById("sensorMode").value;
-  const sensorInput = document.getElementById("sensor_mm");
-  const vresInput = document.getElementById("vres");
+function populateFormatsForBody(bodyName){
+  const fmtSel = $("formatMode");
+  fmtSel.innerHTML = `<option value="">-- Select Format --</option>`;
 
-  if (mode === "custom") {
-    sensorInput.disabled = false;
-    vresInput.disabled = false;
-  } else {
-    const [hres, vres, height] = mode.split(",");
-    sensorInput.value = height;
-    vresInput.value = vres;
-    sensorInput.disabled = true;
-    vresInput.disabled = true;
+  const list = CAMERA_DB[bodyName] || [];
+  for (let i=0;i<list.length;i++){
+    const f = list[i];
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = f.label;
+    fmtSel.appendChild(opt);
+  }
+
+  fmtSel.disabled = list.length === 0;
+}
+
+function applyFormat(bodyName, formatIndex){
+  const list = CAMERA_DB[bodyName] || [];
+  const f = list[formatIndex];
+  if (!f) {
+    $("vres").value = "";
+    $("sensor_mm").value = "";
+    return;
+  }
+  $("vres").value = f.vpx;
+  $("sensor_mm").value = f.vmm;
+}
+
+function restoreState(){
+  const ids = ["focal","feet","inches","lr_offset","lr_height"];
+  for (const id of ids){
+    const v = load(LS_KEYS[id]);
+    if (v !== null) $(id).value = v;
+  }
+
+  const savedFrame = load(LS_KEYS.frame);
+  if (savedFrame){
+    const radio = document.querySelector(`input[name="frame"][value="${savedFrame}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  const savedBody = load(LS_KEYS.cameraBody);
+  if (savedBody && CAMERA_DB[savedBody]){
+    $("cameraBody").value = savedBody;
+    populateFormatsForBody(savedBody);
+
+    const savedFmt = load(LS_KEYS.formatMode);
+    if (savedFmt !== null && savedFmt !== ""){
+      $("formatMode").value = savedFmt;
+      applyFormat(savedBody, Number(savedFmt));
+    }
   }
 }
 
-function calculateTilt() {
-  try {
-    const f = parseFloat(document.getElementById("focal").value);
-    const ft = parseFloat(document.getElementById("feet").value);
-    const inch = parseFloat(document.getElementById("inches").value);
-    const h = parseFloat(document.getElementById("lr_height").value);
-    const z = parseFloat(document.getElementById("lr_offset").value);
-    const sensor_mm = parseFloat(document.getElementById("sensor_mm").value);
+function bindEvents(){
+  // save inputs
+  ["focal","feet","inches","lr_offset","lr_height"].forEach(id=>{
+    $(id).addEventListener("input", ()=> save(LS_KEYS[id], $(id).value));
+  });
 
-    if (isNaN(f) || isNaN(ft) || isNaN(inch) || isNaN(h) || isNaN(z) || isNaN(sensor_mm) || f === 0) {
-      document.getElementById("result").innerText = "Tilt Angle —";
+  document.querySelectorAll('input[name="frame"]').forEach(r=>{
+    r.addEventListener("change", ()=>{
+      const v = document.querySelector('input[name="frame"]:checked')?.value || "top";
+      save(LS_KEYS.frame, v);
+    });
+  });
+
+  $("cameraBody").addEventListener("change", ()=>{
+    const body = $("cameraBody").value;
+    save(LS_KEYS.cameraBody, body);
+
+    populateFormatsForBody(body);
+
+    // clear format selection whenever body changes
+    $("formatMode").value = "";
+    save(LS_KEYS.formatMode, "");
+
+    $("vres").value = "";
+    $("sensor_mm").value = "";
+    $("result").innerText = "Tilt Angle —";
+  });
+
+  $("formatMode").addEventListener("change", ()=>{
+    const body = $("cameraBody").value;
+    const idx = $("formatMode").value;
+    save(LS_KEYS.formatMode, idx);
+
+    if (idx === ""){
+      $("vres").value = "";
+      $("sensor_mm").value = "";
+      $("result").innerText = "Tilt Angle —";
       return;
     }
 
-    const d = (ft * 12) + inch;
-    const horizontal_leg = d - z;
-    const base_angle = Math.atan(-h / horizontal_leg) * (180 / Math.PI); // negative to tilt down if LR is above
+    applyFormat(body, Number(idx));
+  });
+
+  $("calcBtn").addEventListener("click", calculateTilt);
+  $("resetBtn").addEventListener("click", clearFields);
+}
+
+
+/* =========================
+   MATH
+   ========================= */
+
+function calculateTilt(){
+  try{
+    const f = parseFloat($("focal").value);
+    const ft = parseFloat($("feet").value);
+    const inch = parseFloat($("inches").value);
+    const h = parseFloat($("lr_height").value);
+    const z = parseFloat($("lr_offset").value);
+    const sensor_mm = parseFloat($("sensor_mm").value);
+
+    if ([f,ft,inch,h,z,sensor_mm].some(x => Number.isNaN(x)) || f === 0){
+      $("result").innerText = "Tilt Angle —";
+      return;
+    }
+
+    const d = (ft * 12) + inch;                 // inches
+    const horizontal_leg = d - z;               // inches
+    const base_angle = Math.atan(-h / horizontal_leg) * (180 / Math.PI);
+
     const vfov = 2 * Math.atan((sensor_mm / 2) / f) * (180 / Math.PI);
 
-    const frame_choice = document.querySelector('input[name="frame"]:checked').value;
+    const frame_choice = document.querySelector('input[name="frame"]:checked')?.value || "top";
     let frame_pos = 0.25;
     if (frame_choice === "middle") frame_pos = 0.5;
     else if (frame_choice === "top") frame_pos = 0.75;
@@ -183,44 +488,47 @@ function calculateTilt() {
     const offset = (vfov / 2) * (0.5 - frame_pos);
     const final_angle = base_angle + offset;
 
-    document.getElementById("result").innerText = `Tilt Angle: ${final_angle.toFixed(2)}°`;
+    $("result").innerText = `Tilt Angle: ${final_angle.toFixed(2)}°`;
   } catch {
-    document.getElementById("result").innerText = "Tilt Angle —";
+    $("result").innerText = "Tilt Angle —";
   }
 }
 
-function clearFields() {
-  const ids = ['focal', 'feet', 'inches', 'lr_height', 'lr_offset', 'sensorMode', 'vres', 'sensor_mm'];
-  ids.forEach(id => {
-    document.getElementById(id).value = '';
-    localStorage.removeItem(id);
-  });
-  localStorage.removeItem('frame');
-  document.getElementById("result").innerText = "Tilt Angle —";
+function clearFields(){
+  // clear localStorage
+  Object.values(LS_KEYS).forEach(k => del(k));
+
+  // clear UI
+  ["focal","feet","inches","lr_offset","lr_height"].forEach(id => $(id).value = "");
+  document.querySelector('input[name="frame"][value="top"]').checked = true;
+
+  $("cameraBody").value = "";
+  $("formatMode").innerHTML = `<option value="">-- Select Format --</option>`;
+  $("formatMode").disabled = true;
+
+  $("vres").value = "";
+  $("sensor_mm").value = "";
+
+  $("result").innerText = "Tilt Angle —";
 }
 
-window.onload = () => {
-  const ids = ['focal', 'feet', 'inches', 'lr_height', 'lr_offset', 'sensorMode', 'vres', 'sensor_mm'];
-  ids.forEach(id => {
-    const saved = localStorage.getItem(id);
-    if (saved !== null) {
-      const el = document.getElementById(id);
-      if (el) el.value = saved;
-    }
-  });
 
-  const savedFrame = localStorage.getItem('frame');
-  if (savedFrame) {
-    const radio = document.querySelector(`input[name="frame"][value="${savedFrame}"]`);
-    if (radio) radio.checked = true;
-  } else {
-    document.querySelector('input[name="frame"][value="top"]').checked = true;
-  }
+/* =========================
+   PWA (offline + install)
+   ========================= */
 
-  updateSensorValues();
-  calculateTilt();
-};
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("./sw.js"));
+}
+
+
+/* =========================
+   INIT
+   ========================= */
+
+populateBodies();
+restoreState();
+bindEvents();
 </script>
-
 </body>
 </html>
