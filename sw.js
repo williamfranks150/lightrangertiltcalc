@@ -1,5 +1,5 @@
-const CACHE = "lr-tilt-v99";
-const ASSETS = ["./", "./index.html", "./manifest.json"];
+const CACHE = "lr-tilt-v200";
+const ASSETS = ["./", "./index.html", "./manifest.json", "./sw.js"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
