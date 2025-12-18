@@ -1,195 +1,315 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Light Ranger Tilt Calculator</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LR Tilt">
 <meta name="theme-color" content="#000000">
-<title>LR Tilt</title>
+
+<link rel="manifest" href="./manifest.json">
 
 <style>
-  :root { color-scheme: dark; }
-  body{
-    margin:0; background:#000; color:#fff;
-    font-family:-apple-system, system-ui, sans-serif;
-  }
-  .wrap{
-    padding:16px;
-    max-width:520px;
-    margin:0 auto;
-  }
-  h1{
-    margin:0 0 12px 0;
-    font-size:18px;
-    text-align:center;
-    letter-spacing:0.08em;
-  }
-  .card{
-    border:1px solid #2a2a2a;
-    border-radius:12px;
-    padding:14px;
-    background:#070707;
-  }
-  .grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:10px;
-  }
-  label{
-    display:block;
-    font-size:12px;
-    opacity:0.75;
-    margin:0 0 6px 0;
-  }
-  input{
-    width:100%;
-    padding:12px 10px;
-    font-size:18px;
-    border-radius:10px;
-    border:1px solid #333;
-    background:#000;
-    color:#fff;
-    box-sizing:border-box;
-    outline:none;
-  }
-  .row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    margin-top:12px;
-  }
-  button{
-    flex:1;
-    padding:12px 10px;
-    font-size:16px;
-    border-radius:10px;
-    border:1px solid #444;
-    background:#111;
-    color:#fff;
-  }
-  .resultCard{
-    margin-top:12px;
-    border:1px solid #2a2a2a;
-    border-radius:12px;
-    padding:14px;
-    background:#050505;
-  }
-  .big{
-    font-size:34px;
-    font-weight:700;
-    line-height:1.1;
-  }
-  .sub{
-    font-size:13px;
-    opacity:0.7;
-    margin-top:6px;
-  }
-  .tiny{
-    font-size:12px;
-    opacity:0.55;
-    margin-top:14px;
-    text-align:center;
-  }
-  .full{ grid-column: 1 / -1; }
+:root{
+  --bg:#000; --fg:#fff;
+  --line:rgba(255,255,255,.20);
+  --field:rgba(255,255,255,.08);
+  --btn:rgba(255,255,255,.14);
+  --btnline:rgba(255,255,255,.25);
+}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);}
+body{
+  font-family:-apple-system,system-ui,Helvetica,Arial;
+  padding:
+    calc(env(safe-area-inset-top) + 18px)
+    calc(env(safe-area-inset-right) + 18px)
+    calc(env(safe-area-inset-bottom) + 18px)
+    calc(env(safe-area-inset-left) + 18px);
+  box-sizing:border-box;
+  text-align:center;
+}
+.app{max-width:560px;margin:0 auto;}
+h2{margin:0 0 18px;font-size:28px;font-weight:700;}
+label{display:block;margin:14px 0 6px;font-weight:700;}
+input,select,button{
+  width:100%;
+  padding:12px;
+  font-size:18px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:var(--field);
+  color:var(--fg);
+  box-sizing:border-box;
+  text-align:center;
+  outline:none;
+}
+.inline{display:flex;gap:10px;}
+.inline label{flex:1;margin:0;font-weight:700;}
+.radio{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  margin-top:6px;
+  flex-wrap:wrap;
+}
+.radio label{font-weight:500;}
+.radio input{width:auto;}
+#calcBtn{
+  margin-top:18px;
+  font-weight:800;
+  background:var(--btn);
+  border:1px solid var(--btnline);
+}
+#result{margin-top:18px;font-size:32px;font-weight:900;}
+#resetBtn{
+  background:transparent;
+  border:none;
+  color:rgba(255,255,255,.7);
+  margin-top:10px;
+  font-size:16px;
+  padding:10px 0;
+  width:auto;
+}
+.divider{margin-top:14px;height:1px;background:rgba(255,255,255,.12);}
 </style>
 </head>
 
 <body>
-<div class="wrap">
-  <h1>LIGHT RANGER • TILT</h1>
+<div class="app">
+  <h2>Light Ranger Tilt Calculator</h2>
 
-  <div class="card">
-    <div class="grid">
-      <div>
-        <label for="camH">CAMERA HEIGHT (m)</label>
-        <input id="camH" inputmode="decimal" placeholder="e.g. 1.60">
-      </div>
-      <div>
-        <label for="subH">TARGET HEIGHT (m)</label>
-        <input id="subH" inputmode="decimal" placeholder="e.g. 1.45">
-      </div>
+  <label for="focal">Focal Length (mm)</label>
+  <input id="focal" type="number" inputmode="decimal">
 
-      <div class="full">
-        <label for="dist">HORIZONTAL DISTANCE TO TARGET (m)</label>
-        <input id="dist" inputmode="decimal" placeholder="e.g. 4.20">
-      </div>
-    </div>
-
-    <div class="row">
-      <button id="calc">CALCULATE</button>
-      <button id="reset">RESET</button>
-    </div>
+  <label>Subject Distance to Focal Plane</label>
+  <div class="inline">
+    <label>Feet<br><input id="feet" type="number" inputmode="numeric"></label>
+    <label>Inches<br><input id="inches" type="number" inputmode="decimal"></label>
   </div>
 
-  <div class="resultCard">
-    <div class="big" id="tiltDeg">—</div>
-    <div class="sub" id="tiltNote">Enter values.</div>
+  <label>Frame Height</label>
+  <div class="radio">
+    <label><input type="radio" name="frame" value="top" checked> Top Third</label>
+    <label><input type="radio" name="frame" value="middle"> Middle</label>
+    <label><input type="radio" name="frame" value="bottom"> Bottom Third</label>
   </div>
 
-  <div class="tiny">
-    Tilt sign: + = tilt up, − = tilt down
+  <label>Light Ranger Sensor Distance to Focal Plane</label>
+  <div class="inline">
+    <label>Horizontal Offset (in)<br><input id="lr_offset" type="number" inputmode="decimal"></label>
+    <label>Vertical Offset (in)<br><input id="lr_height" type="number" inputmode="decimal"></label>
   </div>
+
+  <div class="divider"></div>
+
+  <label for="cameraBody">Camera Body</label>
+  <select id="cameraBody">
+    <option value="">-- Select Body --</option>
+  </select>
+
+  <label for="formatMode">Format / Sensor Mode</label>
+  <select id="formatMode" disabled>
+    <option value="">-- Select Format --</option>
+  </select>
+
+  <button id="calcBtn" type="button">CALCULATE</button>
+
+  <div id="result">Tilt Angle —</div>
+  <button id="resetBtn" type="button">RESET</button>
 </div>
 
 <script>
-/*
-Tilt angle = atan( (targetHeight - cameraHeight) / distance )
-Outputs degrees, signed.
-*/
+/* ===== Camera DB: only sensor height (mm). No visible vres/sensor boxes. ===== */
+const CAMERA_DB = {
+  "ARRI ALEXA 35": [
+    { label:"4.6K 3:2 Open Gate (4608×3164)", vmm:19.22 },
+    { label:"4.6K 16:9 (4608×2592)",         vmm:15.75 },
+    { label:"4K 2:1 (4096×2048)",            vmm:12.44 },
+    { label:"UHD (3840×2160)",               vmm:13.12 }
+  ],
+  "ARRI ALEXA Mini LF": [
+    { label:"LF Open Gate 3:2 (4448×3096)",  vmm:25.54 },
+    { label:"LF 2.39:1 (4448×1856)",         vmm:15.31 },
+    { label:"LF 16:9 (3840×2160)",           vmm:17.82 }
+  ],
+  "Sony VENICE": [
+    { label:"6K FF 3:2",                     vmm:24.00 },
+    { label:"6K FF 17:9",                    vmm:19.00 },
+    { label:"5.7K FF 16:9",                  vmm:19.00 }
+  ],
+  "RED KOMODO 6K": [
+    { label:"6K 17:9",                       vmm:14.26 },
+    { label:"6K 2:1",                        vmm:13.52 },
+    { label:"6K 2.4:1",                      vmm:11.32 }
+  ]
+};
+
+const LS = {
+  focal:"focal", feet:"feet", inches:"inches",
+  lr_offset:"lr_offset", lr_height:"lr_height",
+  cameraBody:"cameraBody", formatMode:"formatMode",
+  frame:"frame"
+};
+
 const $ = (id) => document.getElementById(id);
+let activeSensorMM = null;
 
-function num(v){
-  if (v == null) return NaN;
-  const x = parseFloat(String(v).replace(",", "."));
-  return Number.isFinite(x) ? x : NaN;
+function save(k,v){ localStorage.setItem(k, String(v ?? "")); }
+function load(k){ return localStorage.getItem(k); }
+function del(k){ localStorage.removeItem(k); }
+
+function populateBodies(){
+  Object.keys(CAMERA_DB).sort().forEach(body=>{
+    const o=document.createElement("option");
+    o.value=body; o.textContent=body;
+    $("cameraBody").appendChild(o);
+  });
+}
+function populateFormats(body){
+  const sel=$("formatMode");
+  sel.innerHTML = `<option value="">-- Select Format --</option>`;
+  const list = CAMERA_DB[body] || [];
+  list.forEach((f,i)=>{
+    const o=document.createElement("option");
+    o.value=String(i); o.textContent=f.label;
+    sel.appendChild(o);
+  });
+  sel.disabled = list.length === 0;
+}
+function setActiveSensor(body, idx){
+  const f = (CAMERA_DB[body]||[])[idx];
+  activeSensorMM = f ? f.vmm : null;
 }
 
-function clampDigits(x){
-  if (!Number.isFinite(x)) return "—";
-  const abs = Math.abs(x);
-  const d = abs >= 10 ? 1 : 2;
-  return x.toFixed(d) + "°";
+function normalizeNumbers(){
+  if ($("focal").value !== "") {
+    const v = Number($("focal").value);
+    if (!Number.isNaN(v)) $("focal").value = String(Math.ceil(v));
+  }
+  if ($("inches").value !== "") {
+    const v = Number($("inches").value);
+    if (!Number.isNaN(v)) $("inches").value = String(Math.ceil(v));
+  }
+  if ($("feet").value !== "") {
+    const v = Number($("feet").value);
+    if (!Number.isNaN(v)) $("feet").value = String(Math.trunc(v));
+  }
+  save(LS.focal, $("focal").value);
+  save(LS.feet, $("feet").value);
+  save(LS.inches, $("inches").value);
 }
 
-function calc(){
-  const camH = num($("camH").value);
-  const subH = num($("subH").value);
-  const dist = num($("dist").value);
+function calculateTilt(){
+  try{
+    normalizeNumbers();
 
-  if (!Number.isFinite(camH) || !Number.isFinite(subH) || !Number.isFinite(dist) || dist <= 0){
-    $("tiltDeg").textContent = "—";
-    $("tiltNote").textContent = "Need valid heights and distance > 0.";
-    return;
+    const f = parseFloat($("focal").value);
+    const ft = parseFloat($("feet").value);
+    const inch = parseFloat($("inches").value);
+    const h = parseFloat($("lr_height").value);
+    const z = parseFloat($("lr_offset").value);
+
+    if (!activeSensorMM || [f,ft,inch,h,z].some(n=>Number.isNaN(n)) || f===0){
+      $("result").innerText = "Tilt Angle —";
+      return;
+    }
+
+    const d = (ft * 12) + inch;                  // inches
+    const base = Math.atan(-h / (d - z)) * (180/Math.PI);
+    const vfov = 2 * Math.atan((activeSensorMM/2)/f) * (180/Math.PI);
+
+    const frame = document.querySelector("input[name='frame']:checked")?.value || "top";
+    const pos = frame==="top" ? 0.75 : frame==="middle" ? 0.5 : 0.25;
+
+    const final = base + (vfov/2) * (0.5 - pos);
+    $("result").innerText = `Tilt Angle: ${final.toFixed(2)}°`;
+  }catch{
+    $("result").innerText = "Tilt Angle —";
+  }
+}
+
+function clearAll(){
+  Object.values(LS).forEach(del);
+  ["focal","feet","inches","lr_offset","lr_height"].forEach(id=>$(id).value="");
+  document.querySelector("input[name='frame'][value='top']").checked=true;
+
+  $("cameraBody").value="";
+  $("formatMode").innerHTML=`<option value="">-- Select Format --</option>`;
+  $("formatMode").disabled=true;
+
+  activeSensorMM=null;
+  $("result").innerText="Tilt Angle —";
+}
+
+function restore(){
+  ["focal","feet","inches","lr_offset","lr_height"].forEach(id=>{
+    const v=load(LS[id]); if (v!==null) $(id).value=v;
+  });
+
+  const fr=load(LS.frame);
+  if (fr){
+    const r=document.querySelector(`input[name="frame"][value="${fr}"]`);
+    if (r) r.checked=true;
   }
 
-  const rise = subH - camH;
-  const rad = Math.atan(rise / dist);
-  const deg = rad * 180 / Math.PI;
-
-  $("tiltDeg").textContent = clampDigits(deg);
-
-  const dir = deg > 0 ? "TILT UP" : (deg < 0 ? "TILT DOWN" : "LEVEL");
-  $("tiltNote").textContent = `${dir} • ΔH ${rise.toFixed(2)} m • D ${dist.toFixed(2)} m`;
+  const body=load(LS.cameraBody);
+  if (body && CAMERA_DB[body]){
+    $("cameraBody").value=body;
+    populateFormats(body);
+    const fmt=load(LS.formatMode);
+    if (fmt!==null && fmt!==""){
+      $("formatMode").value=fmt;
+      setActiveSensor(body, Number(fmt));
+    }
+  }
 }
 
-function resetAll(){
-  $("camH").value = "";
-  $("subH").value = "";
-  $("dist").value = "";
-  $("tiltDeg").textContent = "—";
-  $("tiltNote").textContent = "Enter values.";
+function bind(){
+  ["focal","feet","inches","lr_offset","lr_height"].forEach(id=>{
+    $(id).addEventListener("input", ()=>save(LS[id], $(id).value));
+    $(id).addEventListener("change", ()=>save(LS[id], $(id).value));
+  });
+
+  document.querySelectorAll('input[name="frame"]').forEach(r=>{
+    r.addEventListener("change", ()=>{
+      const v=document.querySelector('input[name="frame"]:checked')?.value || "top";
+      save(LS.frame, v);
+    });
+  });
+
+  $("cameraBody").addEventListener("change", ()=>{
+    const body=$("cameraBody").value;
+    save(LS.cameraBody, body);
+    populateFormats(body);
+    $("formatMode").value="";
+    save(LS.formatMode, "");
+    activeSensorMM=null;
+    $("result").innerText="Tilt Angle —";
+  });
+
+  $("formatMode").addEventListener("change", ()=>{
+    const body=$("cameraBody").value;
+    const idx=$("formatMode").value;
+    save(LS.formatMode, idx);
+    if (idx===""){ activeSensorMM=null; $("result").innerText="Tilt Angle —"; return; }
+    setActiveSensor(body, Number(idx));
+  });
+
+  $("calcBtn").addEventListener("click", calculateTilt);
+  $("resetBtn").addEventListener("click", clearAll);
 }
 
-$("calc").addEventListener("click", calc);
-$("reset").addEventListener("click", resetAll);
-
-// Live-update as you type
-["camH","subH","dist"].forEach(id => $(id).addEventListener("input", calc));
-
-// Offline support
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js");
+/* Offline: register SW */
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("./sw.js"));
 }
+
+populateBodies();
+restore();
+bind();
 </script>
 </body>
 </html>
